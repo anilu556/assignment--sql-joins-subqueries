@@ -98,23 +98,128 @@ INNER JOIN Track t ON t.TrackId  = pt.TrackId
 GROUP BY PlaylistName
 
 -- Provide a query that shows all Invoices but includes the # of invoice line items.
-
+SELECT
+  InvoiceId,
+  COUNT(InvoiceId) AS "Invoice Of Line Items"
+  FROM InvoiceLine
+  GROUP BY InvoiceId;
 -- Provide a query that shows total sales made by each sales agent.
 
+SELECT
+  E.FirstName,
+  E.LastName,
+  SUM(I.Total) AS "Total Sales"
+  FROM Employee E
+  INNER JOIN Customer C
+  ON E.EmployeeId = C.SupportRepId
+  INNER JOIN Invoice I
+  ON C.CustomerId = I.CustomerId
+  GROUP BY E.EmployeeId;
+
 -- Which sales agent made the most in sales in 2009?
+SELECT
+  E.FirstName,
+  E.LastName,
+  MAX(I.Total) AS "Sales"
+  FROM Employee E
+  INNER JOIN Customer C
+  ON E.EmployeeId = C.SupportRepId
+  INNER JOIN Invoice I
+  ON C.CustomerId = I.CustomerId
+  WHERE strftime('%Y', InvoiceDate) IN("2009");
 
 -- Which sales agent made the most in sales over all?
+SELECT
+  E.FirstName,
+  E.LastName,
+  MAX(I.Total) AS "Sales"
+  FROM Employee E
+  INNER JOIN Customer C
+  ON E.EmployeeId = C.SupportRepId
+  INNER JOIN Invoice I
+  ON C.CustomerId = I.CustomerId;
 
 -- Provide a query that shows the count of customers assigned to each sales agent.
+SELECT
+  E.FirstName,
+  E.LastName,
+  COUNT(*) AS "Customers"
+  FROM Customer C
+  INNER JOIN Employee E
+  ON E.EmployeeId = C.SupportRepId
+  GROUP BY SupportRepId;
 
 -- Provide a query that shows the total sales per country.
+SELECT
+  C.Country,
+  SUM(Total) AS "Total Sales"
+  FROM Invoice I
+  INNER JOIN Customer C
+  ON I.CustomerId = C.CustomerId
+  GROUP BY Country;
 
 -- Which country's customers spent the most?
-
+SELECT
+  C.Country,
+  MAX(Total) AS "Sales"
+  FROM Invoice I
+  INNER JOIN Customer C
+  ON I.CustomerId = C.CustomerId;
 -- Provide a query that shows the most purchased track of 2013.
+SELECT
+  T.Name AS "TrackName",
+  InvoiceDate AS "Year",
+  SUM(Il.Quantity) AS "Purchases"
+  FROM InvoiceLine Il
+  INNER JOIN Track T
+  ON Il.TrackId = T.TrackId
+  INNER JOIN Invoice I
+  ON IL.InvoiceId = I.InvoiceId
+  WHERE strftime('%Y', InvoiceDate) IN("2013")
+  GROUP BY T.Name;
 
 -- Provide a query that shows the top 5 most purchased tracks over all.
+SELECT
+  T.Name AS "TrackName",
+  COUNT(Il.InvoiceLineId) AS "Purchases"
+  FROM Invoice I
+  INNER JOIN InvoiceLine Il
+  ON Il.InvoiceId = I.InvoiceId
+  INNER JOIN Track T
+  ON T.TrackId = Il.TrackId
+  GROUP BY T.TrackId
+  ORDER BY Il.InvoiceLineId DESC
+  LIMIT 5;
 
 -- Provide a query that shows the top 3 best selling artists.
-
+SELECT
+  Ar.Name AS "ArtistName",
+  COUNT(Il.TrackId) AS "Total Purchases",
+  SUM(IL.UnitPrice) AS "Total"
+  FROM Invoice I
+  INNER JOIN InvoiceLine Il
+  ON Il.InvoiceId = I.InvoiceId
+  INNER JOIN Track T
+  ON T.TrackId = Il.TrackId
+  INNER JOIN Album Al
+  ON T.AlbumId = AL.AlbumId
+  INNER JOIN Artist Ar
+  ON Al.ArtistId = Ar.ArtistId
+  GROUP BY Ar.Name
+  ORDER BY Total DESC
+  LIMIT 3;
 -- Provide a query that shows the most purchased Media Type.
+SELECT
+  Mt.MediaTypeId AS "Media Type Id",
+  Mt.Name AS "Media Type Name",
+  COUNT(T.MediaTypeId) AS "Total"
+  FROM MediaType Mt
+  INNER JOIN Track T
+  ON Mt.MediaTypeId = T.MediaTypeId
+  INNER JOIN InvoiceLine Il
+  ON T.TrackId = Il.TrackId
+  INNER JOIN Invoice I
+  ON Il.InvoiceId = I.InvoiceId
+  GROUP BY Mt.MediaTypeId
+  ORDER BY "Total" DESC
+  lIMIT 1;
